@@ -1,0 +1,8 @@
+{
+  "build": "ONLINE COMPETITION BUILD",
+  "version": "2026.10",
+  "model_primary": "community-hosted copy of NASA LRO web model",
+  "model_official": "NASA SVS #14959",
+  "fallback": "local 3D lunar visualization",
+  "static_hosting": "GitHub Pages"
+}

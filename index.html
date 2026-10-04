@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lunar Landing Analyzer — NASA LRO Mission Concept</title>
+<meta name="description" content="Interactive lunar landing-site analysis prototype using NASA LRO-derived lunar data and educational mission analysis.">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{"imports":{
+"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="loading"><div class="loading-orbit"><div class="orbit-dot"></div></div><div class="loading-brand">NASA / LRO · MISSION ENVIRONMENT</div><b id="loadingText">INITIALIZING LUNAR ANALYZER</b><span id="loadingSub">Preparing the online mission environment…</span><div class="loading-track"><i id="loadingBar"></i></div><div class="loading-meta"><span>3D SURFACE ASSET</span><b id="loadingPct">0%</b></div><button id="retryModel" class="secondary" hidden>RETRY NASA 3D MODEL</button></div>
+
+<header>
+  <div class="brand">
+    <div class="brandmark">L</div>
+    <div><div class="kicker">LUNAR LANDING ANALYZER</div><h1>Mission Site Intelligence</h1></div>
+  </div>
+  <div class="header-right">
+    <span class="live-dot"></span><span id="dataStatus">ONLINE MISSION ENVIRONMENT</span>
+    <button class="ghost" id="reportBtn">EXPORT REPORT</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="overview">01 OVERVIEW</button>
+  <button class="tab" data-tab="terrain">02 TERRAIN</button>
+  <button class="tab" data-tab="illumination">03 ILLUMINATION</button>
+  <button class="tab" data-tab="landing">04 LANDING SIM</button>
+</nav>
+
+<main>
+<section class="tabpage active" id="overview">
+  <div class="hero-grid">
+    <div class="moon-card">
+      <div id="viewer"></div>
+      <div class="viewer-top">
+        <div><b>3D LUNAR SURFACE</b><small>NASA LRO-derived model</small></div>
+        <span class="pill" id="modelPill">LOADING</span>
+      </div>
+      <div class="viewer-help">DRAG rotate · SCROLL zoom · CLICK surface to select</div><div class="viewer-source">NASA LRO-derived surface when available · local visualization fallback keeps the demo operational</div>
+      <div class="site-tag" id="siteTag">NO SITE SELECTED</div>
+      <div class="sun-arrow" id="sunArrow">☀</div>
+    </div>
+
+    <aside class="right-stack">
+      <div class="panel">
+        <div class="panel-title">TARGET SITE</div>
+        <div class="coord-row">
+          <label>LATITUDE <input id="lat" type="number" step="0.01" min="-90" max="90" value="-89.5"></label>
+          <label>LONGITUDE <input id="lon" type="number" step="0.01" min="-180" max="180" value="0"></label>
+        </div>
+        <div class="button-row"><button class="primary" id="goto">GO TO SITE</button><button class="secondary" id="reset">RESET</button></div>
+        <label class="date-label">MISSION DATE / TIME <input id="mission" type="datetime-local"></label>
+      </div>
+
+      <div class="panel score-panel">
+        <div class="panel-title">SITE ASSESSMENT</div>
+        <div class="score-main"><span id="score">—</span><small>/100</small><em id="grade">ANALYZING</em></div>
+        <div class="scorebar"><i id="scorebar"></i></div>
+        <div class="score-grid">
+          <div><span>SLOPE</span><b id="slope">—</b></div>
+          <div><span>ILLUMINATION</span><b id="illum">—</b></div>
+          <div><span>SURFACE</span><b id="surface">—</b></div>
+          <div><span>COMM LINK*</span><b id="comm">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">SITE COORDINATES</div>
+        <div class="big-coords" id="coords">89.50°S · 0.00°E</div>
+        <div class="mini-grid"><div><span>MOON RADIUS</span><b>1,737.4 km</b></div><div><span>GRAVITY</span><b>1.62 m/s²</b></div></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="cards">
+    <article class="metric-card"><span>☀ SOLAR ELEVATION</span><strong id="sunElev">—</strong><small>prototype astronomy calculation</small></article>
+    <article class="metric-card"><span>◐ LUNAR LIGHT</span><strong id="daylight">—</strong><small>estimated local illumination</small></article>
+    <article class="metric-card"><span>⌁ LUNAR TEMPERATURE</span><strong id="temp">—</strong><small>screening estimate; not live Diviner data</small></article>
+    <article class="metric-card"><span>≈ WIND</span><strong>~0 m/s</strong><small>no Earth-like atmosphere</small></article>
+  </div>
+</section>
+
+<section class="tabpage" id="terrain">
+  <div class="section-head"><div><div class="kicker">02 / TERRAIN</div><h2>Landing surface analysis</h2></div><span class="source-badge">NASA LRO / LOLA REFERENCE</span></div>
+  <div class="analysis-grid">
+    <div class="panel large">
+      <div class="panel-title">TERRAIN PROFILE</div>
+      <div class="profile" id="profile"></div>
+      <div class="profile-labels"><span>APPROACH</span><span>SITE</span><span>EXIT</span></div>
+      <div class="legend-row"><span><i class="flat"></i>Lower slope</span><span><i class="steep"></i>Higher slope</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">HAZARD SCREEN</div>
+      <div class="hazard"><span>Landing slope</span><b id="hazSlope">—</b><i id="hazSlopeBar"></i></div>
+      <div class="hazard"><span>Terrain roughness</span><b id="rough">—</b><i id="roughBar"></i></div>
+      <div class="hazard"><span>Crater / rock risk</span><b id="rocks">—</b><i id="rocksBar"></i></div>
+      <p class="disclaimer">LOLA provides lunar elevation, slope and roughness products used in real landing-site studies. The point values shown here are a competition-prototype screening model, not direct live LOLA retrievals.</p>
+    </div>
+  </div>
+  <div class="source-strip">
+    <b>Why LOLA?</b> NASA says LOLA produces lunar topography, surface slopes and roughness and supports safe landing-site selection.
+    <a href="https://science.nasa.gov/mission/lro/lola/" target="_blank">NASA LOLA →</a>
+  </div>
+</section>
+
+<section class="tabpage" id="illumination">
+  <div class="section-head"><div><div class="kicker">03 / ILLUMINATION</div><h2>Sunlight & power window</h2></div><span class="source-badge">LUNAR POLAR ILLUMINATION CONCEPT</span></div>
+  <div class="illum-grid">
+    <div class="panel large">
+      <div class="panel-title">LOCAL SUN PATH</div>
+      <div class="sun-chart"><div class="horizon"></div><div class="sun-orbit"></div><div class="sun-point" id="sunPoint">☀</div><span class="east">E</span><span class="west">W</span><span class="zenith">ZENITH</span></div>
+      <div class="illum-stats"><div><span>SUN ELEVATION</span><b id="iElev">—</b></div><div><span>ILLUMINATION</span><b id="iIllum">—</b></div><div><span>POWER WINDOW*</span><b id="powerWindow">—</b></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">POLAR SITE NOTES</div>
+      <ul class="notes">
+        <li>High Sun elevation generally reduces long shadows.</li>
+        <li>Terrain can block sunlight even when the Sun is geometrically above the horizon.</li>
+        <li>Near the poles, illumination varies strongly with terrain and time.</li>
+        <li>NASA polar-illumination products model terrain-based lighting over long time periods.</li>
+      </ul>
+      <a class="source-link" href="https://pgda.gsfc.nasa.gov/products/69" target="_blank">NASA PGDA · Lunar Polar Illumination →</a>
+    </div>
+  </div>
+</section>
+
+<section class="tabpage" id="landing">
+  <div class="section-head"><div><div class="kicker">04 / LANDING SIM</div><h2>Educational descent simulation</h2></div><span class="source-badge">PROTOTYPE SIMULATION</span></div>
+  <div class="sim-grid">
+    <div class="panel sim-panel">
+      <div class="sim-stage"><div class="moon-ground"></div><div class="lander" id="lander">◈</div><div class="altitude" id="altitude">100 m</div></div>
+      <div class="sim-controls"><button class="primary" id="simulate">RUN DESCENT</button><button class="secondary" id="stop">STOP</button></div>
+    </div>
+    <div class="panel telemetry">
+      <div class="panel-title">TELEMETRY</div>
+      <div class="tele-row"><span>ALTITUDE</span><b id="teleAlt">100 m</b></div>
+      <div class="tele-row"><span>VERTICAL SPEED</span><b id="teleV">0.0 m/s</b></div>
+      <div class="tele-row"><span>HORIZONTAL SPEED</span><b id="teleH">0.0 m/s</b></div>
+      <div class="tele-row"><span>FUEL INDEX</span><b id="fuel">100%</b></div>
+      <div class="tele-row"><span>LANDING STATE</span><b id="state">READY</b></div>
+      <div class="tele-bar"><i id="fuelbar"></i></div>
+      <p class="disclaimer">This is an educational visualization of a descent profile. It is not a spacecraft flight-control or navigation system.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div><b>LUNAR LANDING ANALYZER</b> · Space Apps competition prototype</div>
+  <div>NASA LRO / LOLA references · Prototype calculations clearly labeled</div>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
